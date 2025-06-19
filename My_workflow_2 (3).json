@@ -1,0 +1,389 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -220,
+        0
+      ],
+      "id": "c3b2135d-1922-4b4e-a936-df2952d37c3b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "95e9d37b-3a1c-4f57-839f-29fe8aa6a0cf",
+              "name": "video_url",
+              "value": "=https://www.youtube.com/watch?v=ey1rpNtRADg",
+              "type": "string"
+            },
+            {
+              "id": "621aeaaf-95e5-45f0-9abd-49ab0854f3d3",
+              "name": "work_dir",
+              "value": "/home/oem/n8n_downloads/",
+              "type": "string"
+            },
+            {
+              "id": "b725aef0-6f4b-4217-a358-b589eaaafbb4",
+              "name": "downloaded_video_name",
+              "value": "={{ \"indirilen_video_\" + $json.benzersiz_id + \".mp4\" }}",
+              "type": "string"
+            },
+            {
+              "id": "be9709ba-f093-40de-870a-11d73144338c",
+              "name": "=audio_name",
+              "value": "={{ \"ayrilan_ses_\" + $json.benzersiz_id + \".wav\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "a689007d-3bc3-471d-bef8-5f73fb40fd22",
+      "name": "Değişkenleri Ayarla"
+    },
+    {
+      "parameters": {
+        "command": "=yt-dlp -o \"{{$node[\"Değişkenleri Ayarla\"].json[\"work_dir\"]}}{{$node[\"Değişkenleri Ayarla\"].json[\"downloaded_video_name\"]}}\" -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best\" \"{{$node[\"Değişkenleri Ayarla\"].json[\"video_url\"]}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "7d200d26-45d7-4d5d-aeb9-d96e5c269cd7",
+      "name": "1. Video İndir (yt-dlp)"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json[\"work_dir\"]}}{{$node[\"Değişkenleri Ayarla\"].json[\"downloaded_video_name\"]}}\" -vn -acodec pcm_s16le -ar 16000 -ac 1 \"{{$node[\"Değişkenleri Ayarla\"].json[\"work_dir\"]}}{{$node[\"Değişkenleri Ayarla\"].json[\"audio_name\"]}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "id": "b476bfac-52dc-4899-bad6-b5683043d185",
+      "name": "2. Sesi Ayır (FFmpeg)"
+    },
+    {
+      "parameters": {
+        "command": "=whisper \"{{$node[\"Değişkenleri Ayarla\"].json[\"work_dir\"]}}{{$node[\"Değişkenleri Ayarla\"].json[\"audio_name\"]}}\" --language English --model base.en --output_format srt --output_dir \"{{$node[\"Değişkenleri Ayarla\"].json[\"work_dir\"]}}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        880,
+        0
+      ],
+      "id": "309dd329-239c-42ca-b4dd-43def0d75320",
+      "name": "3. Yazıya Çevir (Whisper)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "653880e1-0bf2-4eb9-b2af-fcc21936a1be",
+              "name": "benzersiz_id",
+              "value": "={{$now.toMillis()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f91c4578-c433-4718-8a72-33e63317c7ca",
+      "name": "ID Üret"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash-thinking-exp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        180
+      ],
+      "id": "5cbbf543-1cc2-4c43-a2e5-b16a9b07b107",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "DniBit9LT8tRFQXM",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a master viral video editor and comedian, an expert in finding the single moment in a long video that is destined to become a hilarious, shareable clip on TikTok, YouTube Shorts, or Instagram Reels. Your task is to analyze the following video transcript and identify the absolute funniest, most absurd, or most surprisingly witty segment.\n\nTo find the perfect clip, pay close attention to these signals in the text:\n\nLaughter: Explicit mentions like (laughing), (laughs), or (giggles) are extremely strong indicators of a punchline.\nSound Effects: Comical sounds like (comical sound effect), (record scratch), (boing), or even dramatic sounds (dramatic music) that punctuate a joke.\nHyperbole and Absurdity: Look for wildly exaggerated claims or ridiculous statements (e.g., \"a chicken nugget so big it requires its own zip code\").\nBanter and Sarcasm: Quick, witty exchanges between speakers or clear use of sarcasm.\nThe Punchline: Identify a clear setup followed by an unexpected and funny payoff.\nThe clip you select MUST be between 15 and 30 seconds long.\n\nYour entire response MUST be only the start and end timestamps in the exact SRT format, with no other text, explanation, or notes.\n\nFormat: START: HH:MM:SS,mmm END: HH:MM:SS,mmm\n\nHere is the transcript:\n{{$input.item.json.stdout}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1320,
+        0
+      ],
+      "id": "5865096c-7c47-4cd3-b737-abef56f641c8",
+      "name": "5. Hook Bul (Gemini)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gelen verinin 'text' alanını al\nconst geminiText = $input.item.json.text;\n\n// Metin gelip gelmediğini kontrol et\nif (!geminiText) {\n  throw new Error(\"Gemini'den metin gelmedi veya 'text' alanı boş.\");\n}\n\nlet startTime;\nlet endTime;\n\n// Önce ideal format olan \"START: ... END: ...\" yapısını kontrol et\nif (geminiText.includes('START:') && geminiText.includes('END:')) {\n  console.log(\"İdeal format tespit edildi.\");\n  try {\n    startTime = geminiText.split('END:')[0].replace('START:', '').trim().replace(',', '.');\n    endTime = geminiText.split('END:')[1].trim().replace(',', '.');\n  } catch (e) {\n    throw new Error(`İdeal format ayrıştırılırken hata oluştu: ${e.message}`);\n  }\n}\n// Eğer ideal format yoksa, \"-->\" içeren altyazı formatını kontrol et\nelse if (geminiText.includes('-->')) {\n  console.log(\"Alternatif '-->' formatı tespit edildi.\");\n  try {\n    const parts = geminiText.split('-->');\n    startTime = parts[0].trim().replace(',', '.');\n    // Bitiş zamanından sonra gelen cümle metnini temizle\n    endTime = parts[1].split('\\n')[0].trim().replace(',', '.');\n  } catch (e) {\n    throw new Error(`'-->' formatı ayrıştırılırken hata oluştu: ${e.message}`);\n  }\n}\n// Eğer iki format da bulunamazsa, hata ver\nelse {\n  throw new Error(`Beklenmedik Gemini formatı. Gelen Metin: \"${geminiText}\"`);\n}\n\n// Son bir kontrol: Değişkenler geçerli mi?\nif (!startTime || !endTime || !startTime.includes(':') || !endTime.includes(':')) {\n   throw new Error(`Zaman damgaları geçerli bir şekilde ayrıştırılamadı. Sonuç: startTime=${startTime}, endTime=${endTime}`);\n}\n\n// Sonuçları bir sonraki noda gönder\nreturn {\n  startTime: startTime,\n  endTime: endTime\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        0
+      ],
+      "id": "7696bb05-6b7a-4d2d-91fa-3f40fcae52a8",
+      "name": "Zamanları Ayıkla"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}{{$node[\"Değişkenleri Ayarla\"].json.audio_name.slice(0, -4)}}.srt\" -ss {{$node[\"Zamanları Ayıkla\"].json.startTime}} -to {{$node[\"Zamanları Ayıkla\"].json.endTime}} -c copy \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}KESILMIS_ALTYAZI_{{$node[\"ID Üret\"].json.benzersiz_id}}.srt\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1900,
+        0
+      ],
+      "id": "cc839ef7-b437-4525-a503-4a6767ca3ddc",
+      "name": "6. Altyazıyı Kes"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kesilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\" -vf \"crop=ih*9/16:ih\" -c:a copy -movflags +faststart \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kirpilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2340,
+        0
+      ],
+      "id": "4845287a-6cc6-4e0e-ba4b-5b6b4280a1cd",
+      "name": "8. Videoyu Kırp (9:16)"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kirpilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\" -vf \"subtitles='{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}KESILMIS_ALTYAZI_{{$node[\"ID Üret\"].json.benzersiz_id}}.srt':force_style='Alignment=2,OutlineColour=&H00000000,Shadow=2,ShadowColour=&H80000000,Fontsize=24,PrimaryColour=&HFFFFFF,MarginV=150'\" -c:a copy \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}SON_VIDEO_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2560,
+        0
+      ],
+      "id": "8a1945a3-3e2e-459a-969d-85121be73b2d",
+      "name": "9. Altyazı Ekle ve Son Çıktı"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -ss {{$node[\"Zamanları Ayıkla\"].json.startTime}} -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}{{$node[\"Değişkenleri Ayarla\"].json.downloaded_video_name}}\" -to {{$node[\"Zamanları Ayıkla\"].json.endTime}} -c:v libx264 -c:a aac \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kesilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2120,
+        0
+      ],
+      "id": "0dfefde5-42c9-4644-a663-b852adaa5c86",
+      "name": "7. Videoyu Kes"
+    },
+    {
+      "parameters": {
+        "command": "=cat {{$node[\"Değişkenleri Ayarla\"].json.work_dir}}{{$node[\"Değişkenleri Ayarla\"].json.audio_name.slice(0, -4)}}.srt"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "32b79e8b-f4cf-453b-a927-bc2eac46ee71",
+      "name": "4. Altyazıyı Oku (cat)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "ID Üret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Değişkenleri Ayarla": {
+      "main": [
+        [
+          {
+            "node": "1. Video İndir (yt-dlp)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "1. Video İndir (yt-dlp)": {
+      "main": [
+        [
+          {
+            "node": "2. Sesi Ayır (FFmpeg)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Sesi Ayır (FFmpeg)": {
+      "main": [
+        [
+          {
+            "node": "3. Yazıya Çevir (Whisper)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ID Üret": {
+      "main": [
+        [
+          {
+            "node": "Değişkenleri Ayarla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. Yazıya Çevir (Whisper)": {
+      "main": [
+        [
+          {
+            "node": "4. Altyazıyı Oku (cat)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "5. Hook Bul (Gemini)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "5. Hook Bul (Gemini)": {
+      "main": [
+        [
+          {
+            "node": "Zamanları Ayıkla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Zamanları Ayıkla": {
+      "main": [
+        [
+          {
+            "node": "6. Altyazıyı Kes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "6. Altyazıyı Kes": {
+      "main": [
+        [
+          {
+            "node": "7. Videoyu Kes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "8. Videoyu Kırp (9:16)": {
+      "main": [
+        [
+          {
+            "node": "9. Altyazı Ekle ve Son Çıktı",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7. Videoyu Kes": {
+      "main": [
+        [
+          {
+            "node": "8. Videoyu Kırp (9:16)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "4. Altyazıyı Oku (cat)": {
+      "main": [
+        [
+          {
+            "node": "5. Hook Bul (Gemini)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "56ac3a48-b697-4cdd-a920-15f495cbd702",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "481d8bbd9f38f92609023239312f93174c7ad39ad4f1b85231f139445a236fab"
+  },
+  "id": "9JpNJKJ93aGsMHJw",
+  "tags": []
+}
