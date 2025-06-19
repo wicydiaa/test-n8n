@@ -191,7 +191,7 @@
     },
     {
       "parameters": {
-        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kirpilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\" -vf \"subtitles='{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}KESILMIS_ALTYAZI_{{$node[\"ID Üret\"].json.benzersiz_id}}.srt':force_style='Alignment=2,OutlineColour=&H00000000,Shadow=2,ShadowColour=&H80000000,Fontsize=24,PrimaryColour=&HFFFFFF,MarginV=150'\" -c:a copy \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}SON_VIDEO_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\""
+        "command": "=ffmpeg -y -i \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}kirpilmis_video_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\" -vf \"subtitles='{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}KESILMIS_ALTYAZI_{{$node[\"ID Üret\"].json.benzersiz_id}}.srt':force_style='Alignment=8,OutlineColour=&H00000000,Shadow=2,ShadowColour=&H80000000,Fontsize=18,PrimaryColour=&HFFFFFF'\" -c:a copy \"{{$node[\"Değişkenleri Ayarla\"].json.work_dir}}SON_VIDEO_{{$node[\"ID Üret\"].json.benzersiz_id}}.mp4\""
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
